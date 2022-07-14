@@ -17,9 +17,9 @@ internal class ApplicationSpec(private val paths: List<Path.ApplicationPath>) {
         }
     }
 
-    fun missingPaths(other: List<Path>) = this.paths.filterNot { other.contains(it) }
-    fun superfluousPaths(other: List<Path>): List<Path> = other.filterNot { this.paths.contains(it) }
-    fun missingMethods(other: List<Path>): List<Map<String, List<Method>>> {
+    internal fun missingPaths(other: List<Path>) = this.paths.filterNot { other.contains(it) }
+    internal fun superfluousPaths(other: List<Path>): List<Path> = other.filterNot { this.paths.contains(it) }
+    internal fun missingMethods(other: List<Path>): List<Map<String, List<Method>>> {
         val methodsThatShouldBePresent = this.paths.map { mapOf(it.value to it.methods) }
         val methodsPresentInOther = other.map { mapOf(it.value to it.methods) }
 
@@ -49,18 +49,18 @@ internal class OpenApiSpec(var paths: List<Path>, private val serDer: OpenApiSer
     }
 
     infix fun `should contain the same paths as`(application: ApplicationSpec) {
-        val pathAssertionError = PathAssertionError()
+        val pathAssertion = PathAssertion()
         application.missingPaths(this.paths).let {
-            pathAssertionError.addMissing(it)
+            pathAssertion.addMissing(it)
         }
         application.superfluousPaths(this.paths).let {
-            pathAssertionError.addsuperfluous(it)
+            pathAssertion.addsuperfluous(it)
         }
-        pathAssertionError.evaluate()
+        pathAssertion.evaluate()
     }
 
     infix fun `paths should have the same methods as`(application: ApplicationSpec) {
-        val methodAssertionError = MethodAssertionError()
+        val methodAssertionError = MethodAssertion()
         application.missingMethods(this.paths).let {}
         application.superfluousMethods().let {}
     }
