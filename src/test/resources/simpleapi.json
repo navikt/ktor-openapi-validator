@@ -1,0 +1,15 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "dp-mellomlagring",
+    "version": "1.0"
+  },
+  "paths": {
+    "/test/simple/": {
+      "post": {
+        "description": null,
+        "parameters": []
+      }
+    }
+  }
+}

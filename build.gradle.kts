@@ -23,12 +23,18 @@ kotlin {
 }
 
 dependencies {
-    implementation(RapidAndRivers)
-
     implementation(Konfig.konfig)
-    implementation(Kotlin.Logging.kotlinLogging)
+    implementation(Ktor2.Client.library("core"))
+    implementation(Ktor2.Client.library("jackson"))
+    implementation(Ktor2.Server.library("auth"))
+    implementation(Ktor2.Server.library("auth-jwt"))
+    implementation(Ktor2.Server.library("content-negotiation"))
 
+    testImplementation("no.nav.security:mock-oauth2-server:0.5.1")
     testImplementation(kotlin("test"))
+    testImplementation(Ktor2.Server.library("test-host"))
+    testImplementation(Ktor2.Client.library("mock"))
+    testImplementation(Mockk.mockk)
 }
 
 tasks.withType<Test> {
