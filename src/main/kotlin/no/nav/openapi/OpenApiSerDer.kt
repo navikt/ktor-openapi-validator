@@ -37,7 +37,7 @@ internal data class OpenApiSerDer(
 private fun List<Path>.openapiserder(): Map<String, Map<String, OpenApiSerDer.OpenApiMethod>> {
     return mutableMapOf<String, Map<String, OpenApiSerDer.OpenApiMethod>>().also { map ->
         forEach { path ->
-            map[path.value] = mutableMapOf<String, OpenApiSerDer.OpenApiMethod>().also { map ->
+            map[path.pathString] = mutableMapOf<String, OpenApiSerDer.OpenApiMethod>().also { map ->
                 path.methods.forEach {
                     map[it.operation] = OpenApiSerDer.OpenApiMethod(description = null, parameters = listOf())
                 }

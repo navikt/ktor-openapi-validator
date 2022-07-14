@@ -9,6 +9,7 @@ import io.ktor.server.auth.Authentication
 import io.ktor.server.auth.jwt.jwt
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
+import no.nav.openapi.utils.SimpleTestRoute.simpleTestRoute
 import no.nav.security.mock.oauth2.MockOAuth2Server
 
 internal object TestApplication {

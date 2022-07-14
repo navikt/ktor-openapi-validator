@@ -1,6 +1,12 @@
 package no.nav.openapi
 
+import io.ktor.server.application.plugin
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.Routing
+import no.nav.openapi.ApplicationSpec.Companion.routesInApplication
 import no.nav.openapi.Path.OpenApiSpecPath
+import no.nav.openapi.utils.SimpleTestRoute.expectedPaths
+import no.nav.openapi.utils.withSimpleRoute
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
@@ -23,7 +29,7 @@ internal class ApplicationSpecTest {
                 assertEquals(0, applicationSpec.missingPaths(it).size)
                 assertEquals(2, applicationSpec.superfluousPaths(it).size)
             }
-            applicationPaths.convertToOpenApiSpecPath(ommit=5,add = 2).also {
+            applicationPaths.convertToOpenApiSpecPath(ommit = 5, add = 2).also {
                 assertEquals(5, applicationSpec.missingPaths(it).size)
                 assertEquals(2, applicationSpec.superfluousPaths(it).size)
             }
@@ -32,18 +38,29 @@ internal class ApplicationSpecTest {
     }
 
     @Test
-    fun `missingMethods`() {
+    fun `finds missing and superflous methods`() {
     }
 
     @Test
-    fun superfluousMethods() {
+    fun `converts from Routes to applicationspec`() {
+        withSimpleRoute {
+                val applicationSpec = plugin(Routing).routesInApplication()
+                assertEquals(2, applicationSpec.pathCount(), "wrong pathcount")
+                assertEquals(0, applicationSpec.missingPaths(expectedPaths).size, "wrong count of missing paths")
+                assertEquals(0, applicationSpec.superfluousPaths(expectedPaths).size, "wrong count of superflous paths")
+        }
+    }
+
+    @Test
+    fun `converts unauthenticated routes to Paths`(){
+        val x = linkedMapOf<Route, ArrayList<Route>>()
     }
 }
 
 private fun List<Path.ApplicationPath>.convertToOpenApiSpecPath(ommit: Int = 0, add: Int = 0) =
     mutableListOf<OpenApiSpecPath>().also { openapiPaths ->
         this.subList(0, this.size - ommit).forEach {
-            openapiPaths.add(OpenApiSpecPath(it.value, emptyList()))
+            openapiPaths.add(OpenApiSpecPath(it.pathString, emptyList()))
         }
         for (number in 1..add) {
             openapiPaths.add(OpenApiSpecPath("/add/$number", emptyList()))

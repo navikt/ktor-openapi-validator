@@ -16,11 +16,11 @@ abstract class ContentAssertion(val description: String, val throwfunction: (Int
     }
 
     fun addMissing(it: List<Path>) {
-        missing.addAll(it.map { it.value })
+        missing.addAll(it.map { it.pathString })
     }
 
     fun addsuperfluous(it: List<Path>) {
-        superfluous.addAll(it.map { it.value })
+        superfluous.addAll(it.map { it.pathString })
     }
 
     private fun missingToString(): String = "${missing.size.are()} missing: $missing"
