@@ -6,23 +6,14 @@
   },
   "paths": {
     "/test/simple": {
-      "get": {
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      },
       "post": {
         "responses": {
           "201": {
             "description": "Created"
           }
         }
-      }
-    },
-    "/test/simple/{id}":{
-      "get": {
+      },
+      "put": {
         "responses": {
           "200": {
             "description": "OK"
@@ -35,17 +26,19 @@
             "description": "OK"
           }
         }
-      },
-      "put": {
+      }
+    },
+    "/test/simple/{id}": {
+      "get": {
         "responses": {
           "200": {
             "description": "OK"
           }
         }
       },
-      "post": {
+      "delete": {
         "responses": {
-          "201": {
+          "200": {
             "description": "OK"
           }
         }
