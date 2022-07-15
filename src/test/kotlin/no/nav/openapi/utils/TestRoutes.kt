@@ -8,6 +8,7 @@ import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import no.nav.openapi.Method
+import no.nav.openapi.Method.ApplicationMethod
 import no.nav.openapi.Path
 import no.nav.openapi.utils.SimpleTestRoute.simpleTestRoute
 
@@ -24,12 +25,12 @@ internal object SimpleTestRoute {
     internal val expectedPaths = listOf(
         TestPath(
             pathString = testPath, methods = listOf(
-                Method("get"), Method("post")
+                ApplicationMethod(testPath,"get"), ApplicationMethod(testPath,"post")
             )
         ),
         TestPath(
             pathString = "$testPath/{id}", methods = listOf(
-                Method("get")
+                ApplicationMethod("${testPath}/{id}","get")
             )
         )
     )

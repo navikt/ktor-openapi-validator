@@ -45,7 +45,7 @@ internal class ApplicationSpecTest {
     fun `converts from Routes to applicationspec`() {
         withSimpleRoute {
                 val applicationSpec = plugin(Routing).routesInApplication()
-                assertEquals(2, applicationSpec.pathCount(), "wrong pathcount")
+                assertEquals(2, applicationSpec.pathcount, "wrong pathcount")
                 assertEquals(0, applicationSpec.missingPaths(expectedPaths).size, "wrong count of missing paths")
                 assertEquals(0, applicationSpec.superfluousPaths(expectedPaths).size, "wrong count of superflous paths")
         }

@@ -3,46 +3,48 @@ package no.nav.openapi
 import io.ktor.server.routing.HttpMethodRouteSelector
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.Routing
+import no.nav.openapi.Method.ApplicationMethod
+import no.nav.openapi.Method.OpenApiMethod
+import no.nav.openapi.Path.ApplicationPath
 
-internal class ApplicationSpec(private val paths: List<Path.ApplicationPath>) {
+internal class ApplicationSpec(private val paths: List<ApplicationPath>) {
+    private val methods: List<ApplicationMethod> = this.paths.flatMap { it.methods } as List<ApplicationMethod>
+    val pathcount = this.paths.size
     companion object {
         internal fun Routing.routesInApplication(): ApplicationSpec {
             val applicationPaths = allRoutes(this)
                 .filter { it.selector is HttpMethodRouteSelector }
                 .groupBy { it.parent }
                 .map { routeMap ->
-                        Path.ApplicationPath(
-                            pathString = routeMap.key.toString(),
-                            methods = methodsInPath(routeMap)
+                    ApplicationPath(
+                        pathString = routeMap.key.toString(),
+                        methods = methodsInPath(routeMap)
                     )
                 }
             return ApplicationSpec(applicationPaths)
         }
 
-        private fun methodsInPath(route: Map.Entry<Route?, List<Route>>): MutableList<Method> {
-            val methods = mutableListOf<Method>()
-            route.value.map { methods.add(Method((it.selector as HttpMethodRouteSelector).method.value.lowercase())) }
+        private fun methodsInPath(route: Map.Entry<Route?, List<Route>>): MutableList<ApplicationMethod> {
+            val methods = mutableListOf<ApplicationMethod>()
+            val parent = route.key.toString()
+            route.value.map {
+                methods.add(
+                    ApplicationMethod(
+                        operation = (it.selector as HttpMethodRouteSelector).method.value.lowercase(),
+                        parent = parent
+                    )
+                )
+            }
             return methods
         }
     }
-
     internal fun missingPaths(other: List<Path>) = this.paths.filterNot { other.contains(it) }
-    internal fun superfluousPaths(other: List<Path>): List<Path> = other.filterNot { this.paths.contains(it) }
-    internal fun missingMethods(other: List<Path>): List<Map<String, List<Method>>> {
-        val methodsThatShouldBePresent = this.paths.map { mapOf(it.pathString to it.methods) }
-        val methodsPresentInOther = other.map { mapOf(it.pathString to it.methods) }
-
-        TODO("Not yet implemented")
-    }
-
-    fun superfluousMethods(): Any {
-        TODO("Not yet implemented")
-    }
-
-    fun pathCount() = this.paths.size
-}
+    internal fun superfluousPaths(other: List<Path>) = other.filterNot { this.paths.contains(it) }
+    internal fun missingMethods(other: List<Method>) = this.methods.filterNot { other.contains(it) }
+    internal fun superfluousMethods(other: List<Method>) = other.filterNot { this.methods.contains(it) } }
 
 internal class OpenApiSpec(var paths: List<Path>, private val serDer: OpenApiSerDer) {
+    private val methods = paths.flatMap { it.methods }
     companion object {
         fun fromJson(openapiFilePath: String): OpenApiSpec {
             return OpenApiSerDer.fromFile(openapiFilePath).let {
@@ -50,7 +52,7 @@ internal class OpenApiSpec(var paths: List<Path>, private val serDer: OpenApiSer
                     paths = it.paths.map { path ->
                         Path.OpenApiSpecPath(
                             pathString = path.key,
-                            methods = path.value.map { method -> Method(method.key) }
+                            methods = path.value.map { method -> OpenApiMethod(path.key, method.key) }
                         )
                     },
                     serDer = it
@@ -59,21 +61,27 @@ internal class OpenApiSpec(var paths: List<Path>, private val serDer: OpenApiSer
         }
     }
 
-    infix fun `should contain the same paths as`(application: ApplicationSpec) {
+    infix fun  `should contain the same paths as`(application: ApplicationSpec) {
         val pathAssertion = PathAssertion()
         application.missingPaths(this.paths).let {
             pathAssertion.addMissing(it)
         }
         application.superfluousPaths(this.paths).let {
-            pathAssertion.addsuperfluous(it)
+            pathAssertion.addSuperfluous(it)
         }
         pathAssertion.evaluate()
     }
 
     infix fun `paths should have the same methods as`(application: ApplicationSpec) {
         val methodAssertionError = MethodAssertion()
-        application.missingMethods(this.paths).let {}
-        application.superfluousMethods().let {}
+        application.missingMethods(this.methods).let {
+            methodAssertionError.addMissing(it)
+        }
+        application.superfluousMethods(this.methods).let {
+            methodAssertionError.addSuperfluous(it)
+        }
+
+        methodAssertionError.evaluate()
     }
 
     internal fun updatePaths(application: ApplicationSpec) {
@@ -85,7 +93,7 @@ internal class OpenApiSpec(var paths: List<Path>, private val serDer: OpenApiSer
     internal fun toJson(): ByteArray = serDer.generateNewSpecFile(this).toByteArray()
 }
 
-abstract class Path(val pathString: String, val methods: List<Method>) {
+internal abstract class Path(val pathString: String, val methods: List<Method>) : OpenApiContent {
     override fun equals(other: Any?): Boolean {
         require(other is Path)
         return this.pathString.compareTo(other.pathString) == 0
@@ -97,18 +105,20 @@ abstract class Path(val pathString: String, val methods: List<Method>) {
         return result
     }
 
-    internal class ApplicationPath(pathString: String, methods: List<Method>) : Path(pathString, methods) {
-        fun missingMethods() {
-            TODO("Not yet implemented")
-        }
+    internal class ApplicationPath(pathString: String, methods: List<ApplicationMethod>) : Path(pathString, methods)
 
-        fun superflousMethods(other: List<Path>) {
-        }
-    }
-
-    internal class OpenApiSpecPath(pathString: String, methods: List<Method>) : Path(pathString, methods)
+    internal class OpenApiSpecPath(pathString: String, methods: List<OpenApiMethod>) : Path(pathString, methods)
 }
 
-data class Method(val operation: String)
+internal abstract class Method(val parent: String, val operation: String) : OpenApiContent {
+    internal class OpenApiMethod(parent: String, operation: String) : Method(parent, operation)
+    internal class ApplicationMethod(parent: String, operation: String) : Method(parent, operation)
+
+    override fun equals(other: Any?): Boolean {
+        require(other is Method)
+        return this.operation == other.operation && this.parent == other.parent
+    }
+
+}
 
 private fun allRoutes(root: Route): List<Route> = listOf(root) + root.children.flatMap { allRoutes(it) }
