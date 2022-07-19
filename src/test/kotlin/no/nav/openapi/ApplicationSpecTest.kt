@@ -1,7 +1,6 @@
 package no.nav.openapi
 
 import io.ktor.server.application.plugin
-import io.ktor.server.routing.Route
 import io.ktor.server.routing.Routing
 import no.nav.openapi.ApplicationSpec.Companion.routesInApplication
 import no.nav.openapi.Path.OpenApiSpecPath
@@ -33,7 +32,6 @@ internal class ApplicationSpecTest {
                 assertEquals(5, applicationSpec.missingPaths(it).size)
                 assertEquals(2, applicationSpec.superfluousPaths(it).size)
             }
-
         }
     }
 
@@ -44,16 +42,11 @@ internal class ApplicationSpecTest {
     @Test
     fun `converts from Routes to applicationspec`() {
         withSimpleRoute {
-                val applicationSpec = plugin(Routing).routesInApplication()
-                assertEquals(2, applicationSpec.pathcount, "wrong pathcount")
-                assertEquals(0, applicationSpec.missingPaths(expectedPaths).size, "wrong count of missing paths")
-                assertEquals(0, applicationSpec.superfluousPaths(expectedPaths).size, "wrong count of superflous paths")
+            val applicationSpec = plugin(Routing).routesInApplication()
+            assertEquals(2, applicationSpec.pathcount, "wrong pathcount")
+            assertEquals(0, applicationSpec.missingPaths(expectedPaths).size, "wrong count of missing paths")
+            assertEquals(0, applicationSpec.superfluousPaths(expectedPaths).size, "wrong count of superflous paths")
         }
-    }
-
-    @Test
-    fun `converts unauthenticated routes to Paths`(){
-        val x = linkedMapOf<Route, ArrayList<Route>>()
     }
 }
 
@@ -66,7 +59,6 @@ private fun List<Path.ApplicationPath>.convertToOpenApiSpecPath(ommit: Int = 0, 
             openapiPaths.add(OpenApiSpecPath("/add/$number", emptyList()))
         }
     }
-
 
 private fun createApplicationPaths(amount: Int): List<Path.ApplicationPath> {
     return mutableListOf<Path.ApplicationPath>().also {

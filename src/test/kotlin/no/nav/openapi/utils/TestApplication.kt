@@ -9,7 +9,6 @@ import io.ktor.server.auth.Authentication
 import io.ktor.server.auth.jwt.jwt
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
-import no.nav.openapi.utils.SimpleTestRoute.simpleTestRoute
 import no.nav.security.mock.oauth2.MockOAuth2Server
 
 internal object TestApplication {
@@ -66,17 +65,17 @@ internal object TestApplication {
 
 internal fun Application.ktorFeatures() {
     install(Authentication) {
-        jwt(name = Config.AzureAd.name){}
-        jwt(name = Config.TokenX.name){}
+        jwt(name = Config.AzureAd.name) {}
+        jwt(name = Config.TokenX.name) {}
     }
 }
 private object Config {
     object TokenX {
         val name: String = "tokenx"
-        val audience: String="tokenx"
+        val audience: String = "tokenx"
     }
     object AzureAd {
         val name: String = "azuread"
-        val audience:String ="azuread"
+        val audience: String = "azuread"
     }
 }

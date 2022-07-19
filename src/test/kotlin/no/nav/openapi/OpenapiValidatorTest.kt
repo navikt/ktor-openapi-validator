@@ -13,7 +13,6 @@ import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertEquals
 
-
 class OpenapiValidatorTest {
     @Test
     fun `happy path`() {
@@ -64,9 +63,13 @@ class OpenapiValidatorTest {
                 )
             }
 
+            val openApiSpec2 =
+                OpenApiSpec.fromJson(SimpleTestRoute.`specfile with 1 missing and 2 superflous paths, 2 superflous and 2 missing methods`)
+            assertThrows<OpenApiMethodError> {
+                openApiSpec2 `paths should have the same methods as` applicationRoutes
+            }
         }
     }
-
 
     @Test
     fun `performs recovery and generates correct paths`() {
@@ -75,19 +78,27 @@ class OpenapiValidatorTest {
             val applicationRoutes = plugin(Routing).routesInApplication()
             val correctOpenApiSpec = OpenApiSpec.fromJson(SimpleTestRoute.correctSpecFile)
             val openApiSpecWithErrors =
-                OpenApiSpec.fromJson(SimpleTestRoute.`specfile with 2 superflous and 1 missing path `)
+                OpenApiSpec.fromJson(SimpleTestRoute.`specfile with 1 missing and 2 superflous paths, 2 superflous and 2 missing methods`)
             assertDoesNotThrow {
-                withRecovery(SpecAssertionRecovery(correctOpenApiSpec, applicationRoutes)) {
-                    correctOpenApiSpec `should contain the same paths as` applicationRoutes
-                }
+                SpecAssertionRecovery(correctOpenApiSpec, applicationRoutes)
+                withRecovery(
+                    SpecAssertionRecovery(correctOpenApiSpec, applicationRoutes),
+                    { correctOpenApiSpec `should contain the same paths as` applicationRoutes },
+                    { correctOpenApiSpec `paths should have the same methods as` applicationRoutes }
+                )
             }
             assertThrows<MissingSpecContentError> {
-                withRecovery(SpecAssertionRecovery(openApiSpecWithErrors, applicationRoutes, recoveryfilePath)) {
-                    openApiSpecWithErrors `should contain the same paths as` applicationRoutes
-                }
+                withRecovery(
+                    SpecAssertionRecovery(openApiSpecWithErrors, applicationRoutes, recoveryfilePath),
+                    { openApiSpecWithErrors `should contain the same paths as` applicationRoutes },
+                    { openApiSpecWithErrors `paths should have the same methods as` applicationRoutes }
+                )
             }
-            assertDoesNotThrow { OpenApiSpec.fromJson(recoveryfilePath) `should contain the same paths as` applicationRoutes }
+            assertDoesNotThrow {
+                val updatedSpec = OpenApiSpec.fromJson(recoveryfilePath)
+                updatedSpec `should contain the same paths as` applicationRoutes
+                updatedSpec `paths should have the same methods as` applicationRoutes
+            }
         }
     }
 }
-

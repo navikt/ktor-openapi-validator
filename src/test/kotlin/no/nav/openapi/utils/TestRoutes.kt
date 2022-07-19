@@ -20,17 +20,22 @@ internal object SimpleTestRoute {
         "$userDir/src/test/resources/openapi/simpleapi-error-in-paths.json"
     val `specfile with 3 missing and 2 superflous methods` =
         "$userDir/src/test/resources/openapi/simpleapi-error-in-methods.json"
+    val `specfile with 1 missing and 2 superflous paths, 2 superflous and 2 missing methods` =
+        "$userDir/src/test/resources/openapi/simpleapi-error-in-methods-and-paths.json"
+
     internal val testPath = "/test/simple"
     internal val correctSpecFile = "$userDir/src/test/resources/openapi/simpleapi.json"
     internal val expectedPaths = listOf(
         TestPath(
-            pathString = testPath, methods = listOf(
-                ApplicationMethod(testPath,"get"), ApplicationMethod(testPath,"post")
+            pathString = testPath,
+            methods = listOf(
+                ApplicationMethod(testPath, "get"), ApplicationMethod(testPath, "post")
             )
         ),
         TestPath(
-            pathString = "$testPath/{id}", methods = listOf(
-                ApplicationMethod("${testPath}/{id}","get")
+            pathString = "$testPath/{id}",
+            methods = listOf(
+                ApplicationMethod("$testPath/{id}", "get")
             )
         )
     )
@@ -47,7 +52,6 @@ internal object SimpleTestRoute {
                 delete { }
                 put { }
             }
-
         }
     }
 }

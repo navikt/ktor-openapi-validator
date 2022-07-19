@@ -1,6 +1,6 @@
 package no.nav.openapi
 
-internal interface OpenApiContent {}
+internal interface OpenApiContent
 
 internal abstract class ContentAssertion(val description: String) {
     protected val missing: MutableList<OpenApiContent> = mutableListOf()

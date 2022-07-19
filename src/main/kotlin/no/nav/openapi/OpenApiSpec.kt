@@ -10,6 +10,7 @@ import no.nav.openapi.Path.ApplicationPath
 internal class ApplicationSpec(private val paths: List<ApplicationPath>) {
     private val methods: List<ApplicationMethod> = this.paths.flatMap { it.methods } as List<ApplicationMethod>
     val pathcount = this.paths.size
+
     companion object {
         internal fun Routing.routesInApplication(): ApplicationSpec {
             val applicationPaths = allRoutes(this)
@@ -38,13 +39,24 @@ internal class ApplicationSpec(private val paths: List<ApplicationPath>) {
             return methods
         }
     }
+
     internal fun missingPaths(other: List<Path>) = this.paths.filterNot { other.contains(it) }
     internal fun superfluousPaths(other: List<Path>) = other.filterNot { this.paths.contains(it) }
     internal fun missingMethods(other: List<Method>) = this.methods.filterNot { other.contains(it) }
-    internal fun superfluousMethods(other: List<Method>) = other.filterNot { this.methods.contains(it) } }
+    internal fun superfluousMethods(other: List<Method>) = other.filterNot { this.methods.contains(it) }
+    fun openApiPaths(): List<Path.OpenApiSpecPath> {
+        return this.paths.map {
+            Path.OpenApiSpecPath(
+                pathString = it.pathString,
+                methods = it.methods.map { OpenApiMethod(it.parent, it.operation) }
+            )
+        }
+    }
+}
 
 internal class OpenApiSpec(var paths: List<Path>, private val serDer: OpenApiSerDer) {
     private val methods = paths.flatMap { it.methods }
+
     companion object {
         fun fromJson(openapiFilePath: String): OpenApiSpec {
             return OpenApiSerDer.fromFile(openapiFilePath).let {
@@ -61,7 +73,7 @@ internal class OpenApiSpec(var paths: List<Path>, private val serDer: OpenApiSer
         }
     }
 
-    infix fun  `should contain the same paths as`(application: ApplicationSpec) {
+    infix fun `should contain the same paths as`(application: ApplicationSpec) {
         val pathAssertion = PathAssertion()
         application.missingPaths(this.paths).let {
             pathAssertion.addMissing(it)
@@ -84,10 +96,8 @@ internal class OpenApiSpec(var paths: List<Path>, private val serDer: OpenApiSer
         methodAssertionError.evaluate()
     }
 
-    internal fun updatePaths(application: ApplicationSpec) {
-        val pathsToBeAdded = application.missingPaths(this.paths)
-        val pathsToBeRemoved = application.superfluousPaths(this.paths)
-        this.paths = this.paths - pathsToBeRemoved + pathsToBeAdded
+    internal fun updateSpec(application: ApplicationSpec) {
+        this.paths = application.openApiPaths()
     }
 
     internal fun toJson(): ByteArray = serDer.generateNewSpecFile(this).toByteArray()
@@ -118,7 +128,6 @@ internal abstract class Method(val parent: String, val operation: String) : Open
         require(other is Method)
         return this.operation == other.operation && this.parent == other.parent
     }
-
 }
 
 private fun allRoutes(root: Route): List<Route> = listOf(root) + root.children.flatMap { allRoutes(it) }
