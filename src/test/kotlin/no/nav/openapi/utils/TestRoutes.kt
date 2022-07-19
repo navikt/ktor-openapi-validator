@@ -1,6 +1,7 @@
 package no.nav.openapi.utils
 
 import io.ktor.server.application.Application
+import io.ktor.server.auth.authenticate
 import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
@@ -51,6 +52,36 @@ internal object SimpleTestRoute {
                 post { }
                 delete { }
                 put { }
+            }
+        }
+    }
+}
+
+internal object AutenticatesTestRoute {
+    val correctSpecFilePath = "$userDir/src/test/resources/openapi/autehnticatedapi.json"
+    internal fun Application.authRoutes() {
+
+        routing {
+            route("simple/azuread") {
+                authenticate(Config.AzureAd.name) {
+                    route("/test1") {
+                        get { }
+                        post { }
+                    }
+                    route("test1/{id}") {
+                        get {}
+                    }
+                    route("test1/summary") {
+                        get {}
+                        post { }
+                        put { }
+                        delete { }
+                    }
+                }
+            }
+            route("simple/tokenx") {
+                authenticate(Config.TokenX.name) {
+                }
             }
         }
     }

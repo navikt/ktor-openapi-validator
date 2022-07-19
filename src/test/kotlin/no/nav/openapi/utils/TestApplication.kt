@@ -69,7 +69,7 @@ internal fun Application.ktorFeatures() {
         jwt(name = Config.TokenX.name) {}
     }
 }
-private object Config {
+internal object Config {
     object TokenX {
         val name: String = "tokenx"
         val audience: String = "tokenx"

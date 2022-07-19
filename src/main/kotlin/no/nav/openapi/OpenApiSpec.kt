@@ -7,12 +7,12 @@ import no.nav.openapi.Method.ApplicationMethod
 import no.nav.openapi.Method.OpenApiMethod
 import no.nav.openapi.Path.ApplicationPath
 
-internal class ApplicationSpec(private val paths: List<ApplicationPath>) {
+internal class ApplicationRoutes(private val paths: List<ApplicationPath>) {
     private val methods: List<ApplicationMethod> = this.paths.flatMap { it.methods } as List<ApplicationMethod>
     val pathcount = this.paths.size
 
     companion object {
-        internal fun Routing.routesInApplication(): ApplicationSpec {
+        internal fun Routing.routesInApplication(): ApplicationRoutes {
             val applicationPaths = allRoutes(this)
                 .filter { it.selector is HttpMethodRouteSelector }
                 .groupBy { it.parent }
@@ -22,7 +22,7 @@ internal class ApplicationSpec(private val paths: List<ApplicationPath>) {
                         methods = methodsInPath(routeMap)
                     )
                 }
-            return ApplicationSpec(applicationPaths)
+            return ApplicationRoutes(applicationPaths)
         }
 
         private fun methodsInPath(route: Map.Entry<Route?, List<Route>>): MutableList<ApplicationMethod> {
@@ -73,7 +73,7 @@ internal class OpenApiSpec(var paths: List<Path>, private val serDer: OpenApiSer
         }
     }
 
-    infix fun `should contain the same paths as`(application: ApplicationSpec) {
+    infix fun `should contain the same paths as`(application: ApplicationRoutes) {
         val pathAssertion = PathAssertion()
         application.missingPaths(this.paths).let {
             pathAssertion.addMissing(it)
@@ -84,7 +84,7 @@ internal class OpenApiSpec(var paths: List<Path>, private val serDer: OpenApiSer
         pathAssertion.evaluate()
     }
 
-    infix fun `paths should have the same methods as`(application: ApplicationSpec) {
+    infix fun `paths should have the same methods as`(application: ApplicationRoutes) {
         val methodAssertionError = MethodAssertion()
         application.missingMethods(this.methods).let {
             methodAssertionError.addMissing(it)
@@ -96,7 +96,7 @@ internal class OpenApiSpec(var paths: List<Path>, private val serDer: OpenApiSer
         methodAssertionError.evaluate()
     }
 
-    internal fun updateSpec(application: ApplicationSpec) {
+    internal fun updateSpec(application: ApplicationRoutes) {
         this.paths = application.openApiPaths()
     }
 

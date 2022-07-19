@@ -2,7 +2,7 @@ package no.nav.openapi
 
 import io.ktor.server.application.plugin
 import io.ktor.server.routing.Routing
-import no.nav.openapi.ApplicationSpec.Companion.routesInApplication
+import no.nav.openapi.ApplicationRoutes.Companion.routesInApplication
 import no.nav.openapi.Path.OpenApiSpecPath
 import no.nav.openapi.utils.SimpleTestRoute.expectedPaths
 import no.nav.openapi.utils.withSimpleRoute
@@ -14,23 +14,23 @@ internal class ApplicationSpecTest {
     @Test
     fun `finds missing and superflous paths`() {
         createApplicationPaths(5).also { applicationPaths ->
-            val applicationSpec = ApplicationSpec(applicationPaths)
+            val applicationRoutes = ApplicationRoutes(applicationPaths)
 
             applicationPaths.convertToOpenApiSpecPath().also {
-                assertEquals(0, applicationSpec.missingPaths(it).size)
-                assertEquals(0, applicationSpec.superfluousPaths(it).size)
+                assertEquals(0, applicationRoutes.missingPaths(it).size)
+                assertEquals(0, applicationRoutes.superfluousPaths(it).size)
             }
             applicationPaths.convertToOpenApiSpecPath(ommit = 3).also {
-                assertEquals(3, applicationSpec.missingPaths(it).size)
-                assertEquals(0, applicationSpec.superfluousPaths(it).size)
+                assertEquals(3, applicationRoutes.missingPaths(it).size)
+                assertEquals(0, applicationRoutes.superfluousPaths(it).size)
             }
             applicationPaths.convertToOpenApiSpecPath(add = 2).also {
-                assertEquals(0, applicationSpec.missingPaths(it).size)
-                assertEquals(2, applicationSpec.superfluousPaths(it).size)
+                assertEquals(0, applicationRoutes.missingPaths(it).size)
+                assertEquals(2, applicationRoutes.superfluousPaths(it).size)
             }
             applicationPaths.convertToOpenApiSpecPath(ommit = 5, add = 2).also {
-                assertEquals(5, applicationSpec.missingPaths(it).size)
-                assertEquals(2, applicationSpec.superfluousPaths(it).size)
+                assertEquals(5, applicationRoutes.missingPaths(it).size)
+                assertEquals(2, applicationRoutes.superfluousPaths(it).size)
             }
         }
     }
